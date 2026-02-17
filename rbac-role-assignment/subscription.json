@@ -1,0 +1,40 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2018-05-01/subscriptionDeploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "metadata": {
+    "description": "Assigns an RBAC role (default: Reader) to the Blast service principal for resource inventory collection. The customer must provide the Object ID of the service principal as it appears in their tenant (Enterprise Applications)."
+  },
+  "parameters": {
+    "servicePrincipalObjectId": {
+      "type": "string",
+      "metadata": {
+        "description": "The Object ID of the Blast service principal in your tenant. Find it in Azure Portal > Entra ID > Enterprise Applications > search for the app > Object ID."
+      }
+    },
+    "roleDefinitionId": {
+      "type": "string",
+      "defaultValue": "acdd72a7-3385-48ef-bd42-f606fba81ae7",
+      "metadata": {
+        "description": "The RBAC role definition ID to assign. Default is Reader (acdd72a7-3385-48ef-bd42-f606fba81ae7)."
+      }
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "name": "[guid(subscription().id, parameters('servicePrincipalObjectId'), parameters('roleDefinitionId'))]",
+      "properties": {
+        "roleDefinitionId": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', parameters('roleDefinitionId'))]",
+        "principalId": "[parameters('servicePrincipalObjectId')]",
+        "principalType": "ServicePrincipal"
+      }
+    }
+  ],
+  "outputs": {
+    "roleAssignmentId": {
+      "type": "string",
+      "value": "[guid(subscription().id, parameters('servicePrincipalObjectId'), parameters('roleDefinitionId'))]"
+    }
+  }
+}
