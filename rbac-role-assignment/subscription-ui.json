@@ -1,0 +1,86 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/0.1.2-preview/CreateUIDefinition.MultiVm.json#",
+  "handler": "Microsoft.Azure.CreateUIDefinition.MultiVm",
+  "version": "0.1.2-preview",
+  "parameters": {
+    "basics": [
+      {
+        "name": "servicePrincipalObjectId",
+        "type": "Microsoft.Common.TextBox",
+        "label": "Blast Service Principal Object ID",
+        "toolTip": "Find in: Azure Portal > Entra ID > Enterprise Applications > search 'blast-activity-collector' > copy the Object ID (not the Application ID).",
+        "constraints": {
+          "required": true,
+          "regex": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+          "validationMessage": "Must be a valid GUID (xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx)."
+        }
+      }
+    ],
+    "steps": [
+      {
+        "name": "optionalRoles",
+        "label": "Optional Roles",
+        "elements": [
+          {
+            "name": "infoBox",
+            "type": "Microsoft.Common.InfoBox",
+            "visible": true,
+            "options": {
+              "icon": "Info",
+              "text": "These roles are optional. Enable them to grant Blast access to specific monitoring and data resources in this subscription."
+            }
+          },
+          {
+            "name": "enableMonitoringReader",
+            "type": "Microsoft.Common.CheckBox",
+            "label": "Monitoring Reader (subscription scope)",
+            "toolTip": "Grants Monitoring Reader across the entire subscription — provides read access to monitoring metrics and activity logs."
+          },
+          {
+            "name": "storageAccount",
+            "type": "Microsoft.Solutions.ResourceSelector",
+            "label": "Storage Account — Storage Blob Data Reader",
+            "toolTip": "Optionally grant Storage Blob Data Reader on a specific storage account. Leave blank to skip.",
+            "resourceType": "Microsoft.Storage/storageAccounts",
+            "options": {
+              "filter": {
+                "subscription": "onBasics"
+              }
+            }
+          },
+          {
+            "name": "eventHubNamespace",
+            "type": "Microsoft.Solutions.ResourceSelector",
+            "label": "Event Hub Namespace — Azure Event Hubs Data Receiver",
+            "toolTip": "Optionally grant Azure Event Hubs Data Receiver on a specific Event Hub namespace. Leave blank to skip.",
+            "resourceType": "Microsoft.EventHub/namespaces",
+            "options": {
+              "filter": {
+                "subscription": "onBasics"
+              }
+            }
+          },
+          {
+            "name": "logAnalyticsWorkspace",
+            "type": "Microsoft.Solutions.ResourceSelector",
+            "label": "Log Analytics Workspace — Log Analytics Reader",
+            "toolTip": "Optionally grant Log Analytics Reader on a specific Log Analytics workspace. Leave blank to skip.",
+            "resourceType": "Microsoft.OperationalInsights/workspaces",
+            "options": {
+              "filter": {
+                "subscription": "onBasics"
+              }
+            }
+          }
+        ]
+      }
+    ],
+    "outputs": {
+      "servicePrincipalObjectId": "[basics('servicePrincipalObjectId')]",
+      "enableMonitoringReader": "[steps('optionalRoles').enableMonitoringReader]",
+      "storageAccountResourceId": "[if(empty(steps('optionalRoles').storageAccount.id), '', steps('optionalRoles').storageAccount.id)]",
+      "eventHubNamespaceResourceId": "[if(empty(steps('optionalRoles').eventHubNamespace.id), '', steps('optionalRoles').eventHubNamespace.id)]",
+      "logAnalyticsWorkspaceResourceId": "[if(empty(steps('optionalRoles').logAnalyticsWorkspace.id), '', steps('optionalRoles').logAnalyticsWorkspace.id)]"
+    }
+  }
+}
